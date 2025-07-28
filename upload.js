@@ -1,4 +1,4 @@
-
+console.log("upload.js is loading...");
 // Initialize Supabase client
 const supabaseClient = window.supabase.createClient(
   'https://anigfhqllnhrxhbturvs.supabase.co', 
