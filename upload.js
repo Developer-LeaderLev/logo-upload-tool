@@ -1,8 +1,22 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const supabase = Supabase.createClient(
-    "https://anigfhqllnhrxhbturvs.supabase.co",
-    "your-anon-key"
-  );
+window.addEventListener('DOMContentLoaded', () => {
+  const supabase = supabase.createClient('https://anigfhqllnhrxhbturvs.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuaWdmaHFsbG5ocnhoYnR1cnZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5Njc0MTMsImV4cCI6MjA2NDU0MzQxM30.ipHycEKyFq0LycGmEUuQGowSaaY1KUUJVIPDfpKjhXc');
+
+  document.getElementById('upload-button').onclick = async () => {
+    const fileInput = document.getElementById('file-input');
+    const file = fileInput.files[0];
+
+    if (!file) return alert('No file selected.');
+
+    const { data, error } = await supabase.storage.from('image-upload').upload(`logos/${file.name}`, file);
+
+    if (error) {
+      console.error(error);
+      alert('Upload failed.');
+    } else {
+      alert(`Upload successful! Public URL: https://your-project.supabase.co/storage/v1/object/public/image-upload/logos/${file.name}`);
+    }
+  };
+});
 
   // expose uploadFile globally for button onclick
   window.uploadFile = async function() {
