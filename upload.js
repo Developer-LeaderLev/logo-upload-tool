@@ -1,57 +1,41 @@
-window.addEventListener('DOMContentLoaded', () => {
-  const supabase = supabase.createClient('https://anigfhqllnhrxhbturvs.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuaWdmaHFsbG5ocnhoYnR1cnZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5Njc0MTMsImV4cCI6MjA2NDU0MzQxM30.ipHycEKyFq0LycGmEUuQGowSaaY1KUUJVIPDfpKjhXc');
+// Initialize Supabase (make sure script is loaded before this runs)
+const supabase = window.supabase.createClient(
+  'https://anigfhqllnhrxhbturvs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFuaWdmaHFsbG5ocnhoYnR1cnZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5Njc0MTMsImV4cCI6MjA2NDU0MzQxM30.ipHycEKyFq0LycGmEUuQGowSaaY1KUUJVIPDfpKjhXc'
+);
 
-  document.getElementById('upload-button').onclick = async () => {
-    const fileInput = document.getElementById('file-input');
-    const file = fileInput.files[0];
+// Expose uploadFile globally for inline HTML onclick handler
+window.uploadFile = async function () {
+  const fileInput = document.getElementById('fileInput');
+  const resultDiv = document.getElementById('result');
 
-    if (!file) return alert('No file selected.');
+  if (!fileInput.files || fileInput.files.length === 0) {
+    resultDiv.textContent = '⚠️ Please choose a file to upload.';
+    return;
+  }
 
-    const { data, error } = await supabase.storage.from('image-upload').upload(`logos/${file.name}`, file);
+  const file = fileInput.files[0];
+  const filePath = `uploads/${Date.now()}_${file.name}`;
 
-    if (error) {
-      console.error(error);
-      alert('Upload failed.');
-    } else {
-      alert(`Upload successful! Public URL: https://your-project.supabase.co/storage/v1/object/public/image-upload/logos/${file.name}`);
-    }
-  };
-});
+  resultDiv.textContent = 'Uploading...';
 
-  // expose uploadFile globally for button onclick
-  window.uploadFile = async function() {
-    const fileInput = document.getElementById("fileInput");
-    const resultDiv = document.getElementById("result");
+  const { data, error } = await supabase.storage
+    .from('image-upload')
+    .upload(filePath, file, { upsert: true });
 
-    if (!fileInput.files || fileInput.files.length === 0) {
-      resultDiv.textContent = "⚠️ Please choose a file to upload.";
-      return;
-    }
+  if (error) {
+    console.error('Upload error:', error);
+    resultDiv.textContent = `❌ Upload failed: ${error.message}`;
+    return;
+  }
 
-    const file = fileInput.files[0];
-    const filePath = `uploads/${Date.now()}_${file.name}`;
+  const { data: publicData } = supabase.storage
+    .from('image-upload')
+    .getPublicUrl(filePath);
 
-    resultDiv.textContent = "Uploading...";
-
-    const { data, error } = await supabase.storage
-      .from("image-upload")
-      .upload(filePath, file, { upsert: true });
-
-    if (error) {
-      console.error("Upload error:", error);
-      resultDiv.textContent = `❌ Upload failed: ${error.message}`;
-      return;
-    }
-
-    const { data: publicData } = supabase
-      .storage
-      .from("image-upload")
-      .getPublicUrl(filePath);
-
-    resultDiv.innerHTML = `
-      ✅ Upload successful!<br/>
-      🌐 Public URL:<br/>
-      <code>${publicData.publicUrl}</code>
-    `;
-  };
-});
+  resultDiv.innerHTML = `
+    ✅ Upload successful!<br/>
+    🌐 Public URL:<br/>
+    <code>${publicData.publicUrl}</code>
+  `;
+};
