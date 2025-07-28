@@ -1,176 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Upload Your Card Images</title>
-    <style>
-      body {
-        font-family: "Helvetica Neue", sans-serif;
-        background: #f9fafb;
-        padding: 2rem;
-        max-width: 600px;
-        margin: auto;
-        color: #1f2937;
-      }
-      h1 {
-        color: #111827;
-        text-align: center;
-      }
-      form {
-        margin-top: 2rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        background: white;
-        padding: 2rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-      }
-      label {
-        font-weight: 600;
-      }
-      input[type="file"] {
-        padding: 0.5rem;
-      }
-      button {
-        background: #6366f1;
-        color: white;
-        padding: 0.75rem;
-        border: none;
-        border-radius: 0.5rem;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #4f46e5;
-      }
-      .note {
-        font-size: 0.9rem;
-        color: #6b7280;
-        text-align: center;
-      }
-      #result {
-        background: #f0fdf4;
-        border: 1px solid #22c55e;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin-top: 1rem;
-      }
-      #publicUrl {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.375rem;
-        margin: 0.5rem 0;
-        font-family: monospace;
-        font-size: 0.875rem;
-      }
-      .copy-btn {
-        background: #22c55e;
-        font-size: 0.875rem;
-        padding: 0.5rem 1rem;
-      }
-      .copy-btn:hover {
-        background: #16a34a;
-      }
-      .loading {
-        display: none;
-        color: #6366f1;
-        font-weight: 600;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Upload Your Logo or Card Design</h1>
-    <form id="uploadForm" method="post" enctype="multipart/form-data">
-      <label for="file">Choose image:</label>
-      <input type="file" id="file" name="file" accept="image/*" required />
-      <button type="submit">Upload</button>
-      <div class="loading" id="loading">Uploading...</div>
-    </form>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upload Logo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+      text-align: center;
+    }
+    input[type="file"] {
+      margin-top: 1rem;
+    }
+    #result {
+      margin-top: 2rem;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload Your Logo</h1>
+  <p>Select a logo image (PNG, JPG, etc) to upload. You'll get a shareable URL to paste into Slack.</p>
 
-    <div id="result" style="display: none">
-      <p>
-        ✅ Upload successful! Copy this URL and paste it into the Slack modal's
-        logo field:
-      </p>
-      <input type="text" id="publicUrl" readonly />
-      <button class="copy-btn" onclick="copyUrl()">Copy URL</button>
-    </div>
+  <input type="file" id="fileInput" />
+  <br />
+  <button onclick="uploadFile()">Upload</button>
 
-    <p class="note">
-      Only public image links will be used for previews. Max file size ~5MB.
-    </p>
-    <script>
-      document
-        .getElementById("uploadForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
+  <div id="result"></div>
 
-          const submitBtn = this.querySelector('button[type="submit"]');
-          const loading = document.getElementById("loading");
-
-          // Show loading state
-          submitBtn.disabled = true;
-          loading.style.display = "block";
-
-          try {
-            const formData = new FormData(this);
-
-            // Get the current page's origin and use the correct port
-            const baseUrl =
-              window.location.origin.replace(":3000", "") + ":3000";
-
-            const res = await fetch(`${baseUrl}/upload`, {
-              method: "POST",
-              body: formData,
-            });
-
-            const text = await res.text();
-            console.log("Response:", text);
-
-            const match = text.match(/(https:\/\/[^\s]+)/);
-            if (match) {
-              const url = match[1];
-              document.getElementById("publicUrl").value = url;
-              document.getElementById("result").style.display = "block";
-            } else {
-              alert("Upload failed. Please try again. Response: " + text);
-            }
-          } catch (error) {
-            console.error("Upload error:", error);
-            alert("Upload failed: " + error.message);
-          } finally {
-            // Hide loading state
-            submitBtn.disabled = false;
-            loading.style.display = "none";
-          }
-        });
-
-      function copyUrl() {
-        const input = document.getElementById("publicUrl");
-        input.select();
-        input.setSelectionRange(0, 99999); // For mobile
-
-        // Try modern clipboard API first
-        if (navigator.clipboard) {
-          navigator.clipboard
-            .writeText(input.value)
-            .then(() => {
-              alert("URL copied to clipboard!");
-            })
-            .catch(() => {
-              // Fallback to execCommand
-              document.execCommand("copy");
-              alert("URL copied!");
-            });
-        } else {
-          // Fallback for older browsers
-          document.execCommand("copy");
-          alert("URL copied!");
-        }
-      }
-    </script>
-  </body>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="upload.js"></script>
+</body>
 </html>
